@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YOLOv8 Live Detection</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>YOLOv8 + DeepSORT Live Object Count</h1>
+
+    <form method="get" action="/video">
+        <button type="submit" name="source" value="webcam">Use Webcam</button>
+        <button type="submit" name="source" value="file">Use Default Video</button>
+    </form>
+
+    <img src="{{ url_for('video') }}" width="640" />
+
+    <canvas id="countChart" width="600" height="300"></canvas>
+
+    <script>
+        const ctx = document.getElementById('countChart').getContext('2d');
+        const classLabels = ['class1', 'class2', 'class3', 'class4'];
+
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: classLabels,
+                datasets: [{
+                    label: 'Object Counts',
+                    data: [0, 0, 0, 0],
+                    backgroundColor: ['red', 'green', 'blue', 'orange']
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        function updateCounts() {
+            fetch('/counts')
+                .then(res => res.json())
+                .then(data => {
+                    chart.data.datasets[0].data = classLabels.map(cls => data[cls] || 0);
+                    chart.update();
+                });
+        }
+
+        setInterval(updateCounts, 1000); // Update every second
+    </script>
+</body>
+</html>
