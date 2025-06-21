@@ -1,20 +1,49 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>YOLOv8 Live Detection</title>
+    <meta charset="UTF-8">
+    <title>YOLOv8 + DeepSORT Live Object Count</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        img {
+            margin-top: 20px;
+            border: 2px solid #333;
+        }
+        canvas {
+            margin-top: 20px;
+        }
+        .buttons {
+            margin-top: 20px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
     <h1>YOLOv8 + DeepSORT Live Object Count</h1>
 
-    <form method="get" action="/video">
-        <button type="submit" name="source" value="webcam">Use Webcam</button>
-        <button type="submit" name="source" value="file">Use Default Video</button>
-    </form>
+    <div class="buttons">
+        <form method="get" action="/video">
+            <button type="submit" name="source" value="webcam">Use Webcam</button>
+            <button type="submit" name="source" value="file">Use Default Video</button>
+        </form>
+    </div>
 
-    <img src="{{ url_for('video') }}" width="640" />
+    <!-- Video stream -->
+    <img id="videoFeed" src="/video?source=file" width="640" height="480" alt="Live Stream Not Available">
 
-    <canvas id="countChart" width="600" height="300"></canvas>
+    <!-- Chart canvas -->
+    <canvas id="countChart" width="640" height="300"></canvas>
 
     <script>
         const ctx = document.getElementById('countChart').getContext('2d');
@@ -32,21 +61,25 @@
             },
             options: {
                 scales: {
-                    y: { beginAtZero: true }
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
+                    }
                 }
             }
         });
 
         function updateCounts() {
             fetch('/counts')
-                .then(res => res.json())
+                .then(response => response.json())
                 .then(data => {
-                    chart.data.datasets[0].data = classLabels.map(cls => data[cls] || 0);
+                    chart.data.datasets[0].data = classLabels.map(label => data[label] || 0);
                     chart.update();
                 });
         }
 
-        setInterval(updateCounts, 1000); // Update every second
+        // Update chart every second
+        setInterval(updateCounts, 1000);
     </script>
 </body>
 </html>
