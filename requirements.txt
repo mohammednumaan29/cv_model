@@ -1,5 +1,6 @@
-flask 
+flask
+gunicorn
 ultralytics
-deep-sort-realtime
-opencv-python
+deep_sort_realtime
+opencv-python-headless
 numpy

@@ -8,24 +8,51 @@
         body {
             font-family: Arial, sans-serif;
             text-align: center;
+            background-color: #f5f5f5;
+            padding: 20px;
         }
+
         h1 {
             margin-top: 20px;
+            color: #333;
         }
+
         img {
             margin-top: 20px;
-            border: 2px solid #333;
+            border: 3px solid #333;
+            border-radius: 10px;
+            max-width: 90%;
         }
+
         canvas {
-            margin-top: 20px;
+            margin-top: 30px;
         }
+
         .buttons {
             margin-top: 20px;
         }
+
         button {
-            margin: 5px;
+            margin: 10px;
             padding: 10px 20px;
             font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #totalCount {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #222;
         }
     </style>
 </head>
@@ -33,14 +60,15 @@
     <h1>YOLOv8 + DeepSORT Live Object Count</h1>
 
     <div class="buttons">
-        <form method="get" action="/video">
-            <button type="submit" name="source" value="webcam">Use Webcam</button>
-            <button type="submit" name="source" value="file">Use Default Video</button>
-        </form>
+        <button onclick="setSource('webcam')">Use Webcam</button>
+        <button onclick="setSource('file')">Use Default Video</button>
     </div>
 
     <!-- Video stream -->
     <img id="videoFeed" src="/video?source=file" width="640" height="480" alt="Live Stream Not Available">
+
+    <!-- Count summary -->
+    <div id="totalCount">Total Counted Objects: 0</div>
 
     <!-- Chart canvas -->
     <canvas id="countChart" width="640" height="300"></canvas>
@@ -56,7 +84,7 @@
                 datasets: [{
                     label: 'Object Counts',
                     data: [0, 0, 0, 0],
-                    backgroundColor: ['red', 'green', 'blue', 'orange']
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
                 }]
             },
             options: {
@@ -73,9 +101,17 @@
             fetch('/counts')
                 .then(response => response.json())
                 .then(data => {
-                    chart.data.datasets[0].data = classLabels.map(label => data[label] || 0);
+                    const counts = classLabels.map(label => data[label] || 0);
+                    chart.data.datasets[0].data = counts;
                     chart.update();
+
+                    const total = counts.reduce((a, b) => a + b, 0);
+                    document.getElementById('totalCount').innerText = `Total Counted Objects: ${total}`;
                 });
+        }
+
+        function setSource(source) {
+            document.getElementById('videoFeed').src = `/video?source=${source}`;
         }
 
         // Update chart every second
